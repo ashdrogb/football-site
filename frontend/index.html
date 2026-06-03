@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PITCH — Football Analysis</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">PITCH <span>⬤</span></div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE DATA
+    </div>
+    <span style="font-size:0.75rem;color:var(--text3);font-family:var(--font-mono)" id="last-updated"></span>
+  </div>
+</header>
+
+<!-- ── LEAGUE SELECTOR ── -->
+<div class="league-bar" id="league-bar">
+  <div class="loading-row" style="padding:6px 0">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- ── MAIN LAYOUT ── -->
+<main>
+
+  <!-- LEFT COLUMN -->
+  <div>
+
+    <!-- Stat Tiles -->
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-tile">
+        <div class="stat-value" id="stat-total-goals">—</div>
+        <div class="stat-label">Total Goals</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-value" id="stat-matches">—</div>
+        <div class="stat-label">Matches Played</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-value" id="stat-avg">—</div>
+        <div class="stat-label">Goals / Match</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-value" id="stat-clean">—</div>
+        <div class="stat-label">Clean Sheets</div>
+      </div>
+    </div>
+
+    <!-- Scores / Fixtures -->
+    <div class="section-title">FIXTURES & RESULTS</div>
+    <div id="scores-container">
+      <div class="loading-row"><div class="spinner"></div> Loading matches...</div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+
+    <!-- Standings -->
+    <div class="section-title">LEAGUE TABLE</div>
+    <div class="card" style="margin-bottom:24px">
+      <div id="standings-container">
+        <div class="loading-row"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Analysis Tabs -->
+    <div class="section-title">ANALYSIS</div>
+    <div class="card">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('tab-scorers', this)">Top Scorers</button>
+        <button class="tab-btn" onclick="switchTab('tab-highlights', this)">Top Matches</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-scorers">
+        <div style="font-size:0.72rem;color:var(--text3);letter-spacing:1px;margin-bottom:12px">GOALS SCORED BY TEAM</div>
+        <div id="top-scorers-container">
+          <div class="loading-row"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-highlights">
+        <div style="font-size:0.72rem;color:var(--text3);letter-spacing:1px;margin-bottom:12px">HIGHEST SCORING MATCHES</div>
+        <div id="highlights-container">
+          <div class="loading-row"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ── MATCH DETAIL MODAL ── -->
+<div id="match-modal" style="
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:16px
+">
+  <div style="
+    background:var(--card);border:1px solid var(--border);
+    border-radius:16px;width:100%;max-width:520px;
+    max-height:80vh;overflow-y:auto;position:relative
+  ">
+    <button id="modal-close" style="
+      position:absolute;top:12px;right:14px;
+      background:none;border:none;color:var(--text2);
+      font-size:1.2rem;cursor:pointer;line-height:1
+    ">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+<script>
+  // Tab switching
+  function switchTab(panelId, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // Last updated timestamp
+  setInterval(() => {
+    const el = document.getElementById('last-updated');
+    if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  }, 1000);
+</script>
+
+</body>
+</html>
