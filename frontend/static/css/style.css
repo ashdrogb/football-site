@@ -515,3 +515,258 @@ main {
   main { padding: 16px; gap: 16px; }
   .team-name { max-width: 80px; }
 }
+
+/* ── WORLD CUP ADDITIONS ── */
+
+/* Groups grid */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.group-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.group-header {
+  background: linear-gradient(135deg, #0d1f3c 0%, #112244 100%);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,215,0,0.15);
+}
+
+.group-letter {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: #ffd700;
+  letter-spacing: 2px;
+}
+
+.group-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.group-table th {
+  padding: 6px 10px;
+  text-align: left;
+  color: var(--text3);
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.group-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(37,44,58,0.4);
+  vertical-align: middle;
+}
+
+.group-table tr:last-child td { border-bottom: none; }
+.group-table tr:hover td { background: rgba(255,255,255,0.02); }
+.group-table tr.qualified td { background: rgba(0,230,118,0.04); }
+.group-table tr.qualified td:first-child { border-left: 2px solid var(--accent); }
+
+.team-flag {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+.wc-pts {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #ffd700;
+  font-size: 0.85rem;
+}
+
+/* Schedule groups */
+.schedule-day {
+  margin-bottom: 24px;
+}
+
+.schedule-day-label {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  color: var(--text2);
+  margin-bottom: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.schedule-day-label .day-badge {
+  background: rgba(255,215,0,0.1);
+  border: 1px solid rgba(255,215,0,0.2);
+  color: #ffd700;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 1px;
+}
+
+.wc-match-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 1fr;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.wc-match-row:hover { background: rgba(255,215,0,0.02); }
+.wc-match-row:last-child { border-bottom: none; }
+.wc-match-row.wc-live { border-left: 3px solid #ffd700; }
+
+.wc-team { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 500; }
+.wc-team.right { flex-direction: row-reverse; }
+.wc-team.winner { color: #ffd700; }
+
+.wc-score-block { text-align: center; }
+.wc-score {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--text);
+  letter-spacing: 4px;
+  line-height: 1;
+}
+.wc-score.live { color: #ffd700; }
+.wc-time {
+  font-size: 0.65rem;
+  color: var(--text2);
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+}
+.wc-group-badge {
+  font-size: 0.6rem;
+  background: rgba(255,215,0,0.08);
+  color: #ffd700;
+  border: 1px solid rgba(255,215,0,0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+/* Scorers */
+.scorer-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.scorer-row:hover { background: rgba(255,215,0,0.02); }
+.scorer-row:last-child { border-bottom: none; }
+
+.scorer-rank {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--text3);
+  text-align: center;
+}
+
+.scorer-rank.gold   { color: #ffd700; }
+.scorer-rank.silver { color: #b0bec5; }
+.scorer-rank.bronze { color: #cd7f32; }
+
+.scorer-info .scorer-name { font-size: 0.88rem; font-weight: 600; }
+.scorer-info .scorer-team { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
+
+.scorer-goals {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: #ffd700;
+  letter-spacing: 1px;
+  text-align: right;
+}
+
+.goals-label { font-size: 0.6rem; color: var(--text3); text-align: right; letter-spacing: 1px; }
+
+/* Tournament info cards */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.info-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.info-card-icon { font-size: 2rem; margin-bottom: 10px; }
+.info-card-title {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.info-card-value {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+.info-card-sub { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
+
+.host-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.host-badge {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  color: var(--text2);
+}
+
+.qualified-list {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+}
+.q-badge {
+  background: rgba(0,230,118,0.06);
+  border: 1px solid rgba(0,230,118,0.15);
+  color: var(--accent);
+  border-radius: 5px;
+  padding: 4px 9px;
+  font-size: 0.72rem;
+}
+
+/* ── ADDITIONAL FIXES ── */
+.rank-num.top4 { color: var(--accent); font-weight: 600; }
+.fantasy-card { display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border); }
+.fantasy-card:last-child { border-bottom:none; }
+.fantasy-rank { font-family:var(--font-display);font-size:1.4rem;color:var(--text3);width:32px;text-align:center; }
+.fantasy-rank.gold { color:#ffd740; }
+.fantasy-rank.silver { color:#b0bec5; }
+.fantasy-rank.bronze { color:var(--accent3); }
+.fantasy-info { flex:1; }
+.fantasy-team-name { font-size:0.88rem;font-weight:500; }
+.fantasy-sub { font-size:0.72rem;color:var(--text2);margin-top:2px; }
+.fantasy-pts { font-family:var(--font-display);font-size:1.5rem;color:var(--accent);letter-spacing:1px; }
+.scorer-bar-row { display:flex;align-items:center;gap:10px;margin-bottom:10px; }
+.scorer-name { width:130px;font-size:0.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0; }
+.scorer-bar-bg { flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden; }
+.scorer-bar-fill { height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width 0.8s; }
+.scorer-goals { font-family:var(--font-mono);font-size:0.75rem;color:var(--accent);width:28px;text-align:right;flex-shrink:0; }

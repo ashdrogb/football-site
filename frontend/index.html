@@ -1,139 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PITCH — Football Analysis</title>
-  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/style.css"/>
 </head>
 <body>
 
-<!-- ── HEADER ── -->
+<!-- HEADER -->
 <header>
   <div class="logo">PITCH <span>⬤</span></div>
   <div style="display:flex;align-items:center;gap:16px">
-    <div class="live-badge">
-      <div class="live-dot"></div>
-      LIVE DATA
-    </div>
+    <div class="live-badge"><div class="live-dot"></div>LIVE DATA</div>
     <span style="font-size:0.75rem;color:var(--text3);font-family:var(--font-mono)" id="last-updated"></span>
   </div>
 </header>
 
-<!-- ── LEAGUE SELECTOR ── -->
-<div class="league-bar" id="league-bar">
-  <div class="loading-row" style="padding:6px 0">
-    <div class="spinner"></div>
+<!-- WORLD CUP BANNER (shown only when WC selected) -->
+<div id="wc-banner" style="display:none;
+  background:linear-gradient(135deg,#0a1628 0%,#0d2240 50%,#0a1628 100%);
+  border-bottom:1px solid rgba(255,215,0,0.25);
+  padding:14px 32px;align-items:center;gap:16px">
+  <span style="font-size:2rem">🏆</span>
+  <div>
+    <div style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:3px;color:#ffd700">
+      FIFA WORLD CUP 2026
+    </div>
+    <div style="font-size:0.72rem;color:#8892a4;margin-top:2px;letter-spacing:0.5px">
+      48 TEAMS &nbsp;·&nbsp; USA / MEXICO / CANADA &nbsp;·&nbsp; JUN 11 – JUL 19, 2026
+    </div>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+    <div style="text-align:right">
+      <div style="font-size:0.68rem;color:var(--text3);letter-spacing:1px">FINAL</div>
+      <div style="font-size:0.8rem;color:#ffd700;font-family:var(--font-mono)">MetLife Stadium, NJ</div>
+      <div style="font-size:0.68rem;color:var(--text3)">July 19, 2026</div>
+    </div>
   </div>
 </div>
 
-<!-- ── MAIN LAYOUT ── -->
-<main>
+<!-- LEAGUE SELECTOR -->
+<div class="league-bar" id="league-bar">
+  <div class="loading-row" style="padding:6px 0"><div class="spinner"></div></div>
+</div>
 
-  <!-- LEFT COLUMN -->
-  <div>
+<!-- MAIN LAYOUT -->
+<main id="main-layout">
 
-    <!-- Stat Tiles -->
-    <div class="stats-grid" style="margin-bottom:24px">
-      <div class="stat-tile">
-        <div class="stat-value" id="stat-total-goals">—</div>
-        <div class="stat-label">Total Goals</div>
+  <!-- ── REGULAR LEAGUES VIEW ── -->
+  <div id="regular-view" style="display:contents">
+
+    <!-- LEFT -->
+    <div>
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-tile"><div class="stat-value" id="stat-total-goals">—</div><div class="stat-label">Total Goals</div></div>
+        <div class="stat-tile"><div class="stat-value" id="stat-matches">—</div><div class="stat-label">Matches Played</div></div>
+        <div class="stat-tile"><div class="stat-value" id="stat-avg">—</div><div class="stat-label">Goals / Match</div></div>
+        <div class="stat-tile"><div class="stat-value" id="stat-clean">—</div><div class="stat-label">Clean Sheets</div></div>
       </div>
-      <div class="stat-tile">
-        <div class="stat-value" id="stat-matches">—</div>
-        <div class="stat-label">Matches Played</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-value" id="stat-avg">—</div>
-        <div class="stat-label">Goals / Match</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-value" id="stat-clean">—</div>
-        <div class="stat-label">Clean Sheets</div>
-      </div>
-    </div>
 
-    <!-- Scores / Fixtures -->
-    <div class="section-title">FIXTURES & RESULTS</div>
-    <div id="scores-container">
-      <div class="loading-row"><div class="spinner"></div> Loading matches...</div>
-    </div>
-
-  </div>
-
-  <!-- RIGHT COLUMN -->
-  <div>
-
-    <!-- Standings -->
-    <div class="section-title">LEAGUE TABLE</div>
-    <div class="card" style="margin-bottom:24px">
-      <div id="standings-container">
-        <div class="loading-row"><div class="spinner"></div></div>
+      <div class="section-title">FIXTURES & RESULTS</div>
+      <div id="scores-container">
+        <div class="loading-row"><div class="spinner"></div> Loading matches...</div>
       </div>
     </div>
 
-    <!-- Analysis Tabs -->
-    <div class="section-title">ANALYSIS</div>
-    <div class="card">
-      <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('tab-scorers', this)">Top Scorers</button>
-        <button class="tab-btn" onclick="switchTab('tab-highlights', this)">Top Matches</button>
-      </div>
-
-      <div class="tab-panel active" id="tab-scorers">
-        <div style="font-size:0.72rem;color:var(--text3);letter-spacing:1px;margin-bottom:12px">GOALS SCORED BY TEAM</div>
-        <div id="top-scorers-container">
+    <!-- RIGHT -->
+    <div>
+      <div class="section-title">LEAGUE TABLE</div>
+      <div class="card" style="margin-bottom:24px">
+        <div id="standings-container">
           <div class="loading-row"><div class="spinner"></div></div>
         </div>
       </div>
 
-      <div class="tab-panel" id="tab-highlights">
-        <div style="font-size:0.72rem;color:var(--text3);letter-spacing:1px;margin-bottom:12px">HIGHEST SCORING MATCHES</div>
-        <div id="highlights-container">
-          <div class="loading-row"><div class="spinner"></div></div>
+      <div class="section-title">ANALYSIS</div>
+      <div class="card">
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('tab-scorers',this)">Top Scoring Teams</button>
+          <button class="tab-btn" onclick="switchTab('tab-highlights',this)">Top Matches</button>
+        </div>
+        <div class="tab-panel active" id="tab-scorers">
+          <div style="font-size:0.72rem;color:var(--text3);letter-spacing:1px;margin-bottom:12px;padding:12px 16px 0">GOALS SCORED BY TEAM</div>
+          <div id="top-scorers-container" style="padding:0 16px 16px">
+            <div class="loading-row"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-highlights">
+          <div id="highlights-container">
+            <div class="loading-row"><div class="spinner"></div></div>
+          </div>
         </div>
       </div>
     </div>
 
-  </div>
+  </div><!-- /regular-view -->
+
+  <!-- ── WORLD CUP VIEW (full-width grid) ── -->
+  <div id="wc-view" style="display:none;grid-column:1/-1">
+
+    <!-- WC Tab bar -->
+    <div class="tab-bar" style="margin-bottom:20px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)">
+      <button class="tab-btn active" onclick="switchWCTab('wc-groups',this)">Groups</button>
+      <button class="tab-btn" onclick="switchWCTab('wc-schedule',this)">Schedule</button>
+      <button class="tab-btn" onclick="switchWCTab('wc-scorers',this)">Top Scorers</button>
+      <button class="tab-btn" onclick="switchWCTab('wc-info',this)">Tournament Info</button>
+    </div>
+
+    <!-- Groups Tab -->
+    <div id="wc-groups" class="wc-tab active">
+      <div id="groups-container">
+        <div class="loading-row"><div class="spinner"></div> Loading groups...</div>
+      </div>
+    </div>
+
+    <!-- Schedule Tab -->
+    <div id="wc-schedule" class="wc-tab" style="display:none">
+      <div id="wc-schedule-container">
+        <div class="loading-row"><div class="spinner"></div> Loading schedule...</div>
+      </div>
+    </div>
+
+    <!-- Top Scorers Tab -->
+    <div id="wc-scorers" class="wc-tab" style="display:none">
+      <div id="wc-scorers-container">
+        <div class="loading-row"><div class="spinner"></div> Loading scorers...</div>
+      </div>
+    </div>
+
+    <!-- Tournament Info Tab -->
+    <div id="wc-info" class="wc-tab" style="display:none">
+      <div id="wc-info-content"></div>
+    </div>
+
+  </div><!-- /wc-view -->
+
 </main>
 
-<!-- ── MATCH DETAIL MODAL ── -->
-<div id="match-modal" style="
-  display:none;position:fixed;inset:0;z-index:200;
+<!-- MATCH MODAL -->
+<div id="match-modal" style="display:none;position:fixed;inset:0;z-index:200;
   background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
-  align-items:center;justify-content:center;padding:16px
-">
-  <div style="
-    background:var(--card);border:1px solid var(--border);
-    border-radius:16px;width:100%;max-width:520px;
-    max-height:80vh;overflow-y:auto;position:relative
-  ">
-    <button id="modal-close" style="
-      position:absolute;top:12px;right:14px;
-      background:none;border:none;color:var(--text2);
-      font-size:1.2rem;cursor:pointer;line-height:1
-    ">✕</button>
+  align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;
+    width:100%;max-width:520px;max-height:80vh;overflow-y:auto;position:relative">
+    <button id="modal-close" style="position:absolute;top:12px;right:14px;
+      background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer">✕</button>
     <div id="modal-body"></div>
   </div>
 </div>
 
 <script src="/static/js/app.js"></script>
 <script>
-  // Tab switching
-  function switchTab(panelId, btn) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(panelId).classList.add('active');
-    btn.classList.add('active');
-  }
+function switchTab(panelId, btn) {
+  document.querySelectorAll('#regular-view .tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#regular-view .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  btn.classList.add('active');
+}
 
-  // Last updated timestamp
-  setInterval(() => {
-    const el = document.getElementById('last-updated');
-    if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
-  }, 1000);
+function switchWCTab(panelId, btn) {
+  document.querySelectorAll('.wc-tab').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
+  document.querySelectorAll('#wc-view .tab-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(panelId);
+  el.style.display = 'block';
+  el.classList.add('active');
+  btn.classList.add('active');
+  if (panelId === 'wc-info') renderWCInfo();
+}
+
+setInterval(() => {
+  const el = document.getElementById('last-updated');
+  if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
+}, 1000);
 </script>
-
 </body>
 </html>
