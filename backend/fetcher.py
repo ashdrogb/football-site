@@ -1,84 +1,56 @@
+"""
+Football data fetcher using ESPN public API.
+NOTE: ESPN API only works from browser (CORS-based allowlist).
+      All ESPN calls happen in frontend/static/js/app.js directly.
+      This module provides URL builders and parsers for any server-side use.
+"""
 import httpx
-from datetime import datetime
-from typing import Optional
 
 ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer"
 
 LEAGUES = {
-    "eng.1": "Premier League",
-    "esp.1": "La Liga",
-    "ger.1": "Bundesliga",
-    "ita.1": "Serie A",
-    "fra.1": "Ligue 1",
+    "eng.1":          "Premier League",
+    "esp.1":          "La Liga",
+    "ger.1":          "Bundesliga",
+    "ita.1":          "Serie A",
+    "fra.1":          "Ligue 1",
     "uefa.champions": "Champions League",
+    "FIFA.WORLD":     "World Cup 2026",
+}
+
+WC_GROUPS = {
+    "A": ["Qatar","Ecuador","Senegal","Netherlands"],
+    "B": ["England","Iran","United States","Wales"],
+    "C": ["Argentina","Saudi Arabia","Mexico","Poland"],
+    "D": ["France","Australia","Denmark","Tunisia"],
+    "E": ["Spain","Costa Rica","Germany","Japan"],
+    "F": ["Belgium","Canada","Morocco","Croatia"],
+    "G": ["Brazil","Serbia","Switzerland","Cameroon"],
+    "H": ["Portugal","Ghana","Uruguay","South Korea"],
 }
 
 
-async def fetch_scoreboard(league: str = "eng.1") -> dict:
-    """Fetch live/recent scoreboard for a league."""
-    url = f"{ESPN_BASE}/{league}/scoreboard"
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        res = await client.get(url)
-        res.raise_for_status()
-        return res.json()
+def espn_url(league: str, endpoint: str) -> str:
+    return f"{ESPN_BASE}/{league}/{endpoint}"
 
 
-async def fetch_standings(league: str = "eng.1") -> dict:
-    """Fetch league standings/table."""
-    url = f"{ESPN_BASE}/{league}/standings"
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        res = await client.get(url)
-        res.raise_for_status()
-        return res.json()
-
-
-async def fetch_team(league: str, team_id: str) -> dict:
-    """Fetch a specific team's details."""
-    url = f"{ESPN_BASE}/{league}/teams/{team_id}"
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        res = await client.get(url)
-        res.raise_for_status()
-        return res.json()
-
-
-async def fetch_match_summary(league: str, event_id: str) -> dict:
-    """Fetch detailed summary for a specific match."""
-    url = f"{ESPN_BASE}/{league}/summary"
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        res = await client.get(url, params={"event": event_id})
-        res.raise_for_status()
-        return res.json()
-
-
-async def fetch_all_teams(league: str = "eng.1") -> dict:
-    """Fetch all teams in a league."""
-    url = f"{ESPN_BASE}/{league}/teams"
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        res = await client.get(url)
-        res.raise_for_status()
-        return res.json()
-
-
-def parse_scoreboard(raw: dict) -> list[dict]:
-    """Parse ESPN scoreboard response into clean match dicts."""
+def parse_scoreboard(raw: dict) -> list:
     matches = []
     for event in raw.get("events", []):
-        competition = event.get("competitions", [{}])[0]
-        competitors = competition.get("competitors", [])
-
+        comp = event.get("competitions", [{}])[0]
+        competitors = comp.get("competitors", [])
         home = next((c for c in competitors if c.get("homeAway") == "home"), {})
         away = next((c for c in competitors if c.get("homeAway") == "away"), {})
-
         status_obj = event.get("status", {})
         status_type = status_obj.get("type", {})
-
-        match = {
+        matches.append({
             "id": event.get("id"),
-            "name": event.get("name"),
+            "name": event.get("name", ""),
             "date": event.get("date"),
             "status": status_type.get("description", "Scheduled"),
             "status_short": status_type.get("shortDetail", ""),
             "completed": status_type.get("completed", False),
+            "live": status_type.get("state", "") == "in",
             "clock": status_obj.get("displayClock", ""),
             "period": status_obj.get("period", 0),
             "home_team": home.get("team", {}).get("displayName", ""),
@@ -91,33 +63,59 @@ def parse_scoreboard(raw: dict) -> list[dict]:
             "away_team_logo": away.get("team", {}).get("logo", ""),
             "away_score": away.get("score", "-"),
             "away_winner": away.get("winner", False),
-            "venue": competition.get("venue", {}).get("fullName", ""),
-        }
-        matches.append(match)
+            "venue": comp.get("venue", {}).get("fullName", ""),
+            "group": comp.get("groups", {}).get("name", ""),
+        })
     return matches
 
 
-def parse_standings(raw: dict) -> list[dict]:
-    """Parse ESPN standings into clean rows."""
+def parse_standings(raw: dict) -> list:
+    """
+    Robust parser that handles ESPN's multiple standings response shapes:
+    - flat: raw['standings']['entries']
+    - grouped: raw['children'][n]['standings']['entries']
+    - league-wrapped: raw['children'][n]['children'][m]['standings']['entries']
+    """
     rows = []
-    groups = raw.get("standings", {}).get("entries", [])
 
-    # ESPN standings can be nested under groups
-    if not groups:
-        for group in raw.get("children", []):
-            entries = group.get("standings", {}).get("entries", [])
-            groups.extend(entries)
+    def extract_entries(node):
+        results = []
+        if isinstance(node, dict):
+            if "entries" in node:
+                results.extend(node["entries"])
+            for child in node.get("children", []):
+                results.extend(extract_entries(child))
+            if "standings" in node:
+                results.extend(extract_entries(node["standings"]))
+        elif isinstance(node, list):
+            for item in node:
+                results.extend(extract_entries(item))
+        return results
 
-    for entry in groups:
+    entries = extract_entries(raw)
+
+    seen = set()
+    for entry in entries:
         team = entry.get("team", {})
+        tid = team.get("id")
+        if not tid or tid in seen:
+            continue
+        seen.add(tid)
         stats = {s["name"]: s.get("displayValue", s.get("value", 0))
                  for s in entry.get("stats", [])}
+        logos = team.get("logos") or team.get("logo") or []
+        if isinstance(logos, str):
+            logo = logos
+        elif logos:
+            logo = logos[0].get("href", "")
+        else:
+            logo = ""
         rows.append({
-            "team_id": team.get("id"),
+            "team_id": tid,
             "team_name": team.get("displayName", ""),
             "team_abbr": team.get("abbreviation", ""),
-            "team_logo": team.get("logos", [{}])[0].get("href", "") if team.get("logos") else "",
-            "rank": entry.get("note", {}).get("rank", stats.get("rank", 0)),
+            "team_logo": logo,
+            "rank": stats.get("rank", 0),
             "played": stats.get("gamesPlayed", 0),
             "wins": stats.get("wins", 0),
             "draws": stats.get("ties", 0),
@@ -127,4 +125,29 @@ def parse_standings(raw: dict) -> list[dict]:
             "goal_diff": stats.get("pointDifferential", 0),
             "points": stats.get("points", 0),
         })
+
+    # Sort by points desc
+    rows.sort(key=lambda x: (
+        -int(str(x["points"]).replace("+","").replace("-","0") or 0),
+        -int(str(x["goals_for"]).replace("+","").replace("-","0") or 0),
+    ))
     return rows
+
+
+def parse_top_scorers(raw: dict) -> list:
+    """Parse ESPN leaders/scorers response."""
+    players = []
+    categories = raw.get("categories", [])
+    for cat in categories:
+        if cat.get("name", "").lower() in ("goals", "scoring", "scorers"):
+            for leader in cat.get("leaders", []):
+                athlete = leader.get("athlete", {})
+                team = leader.get("team", {})
+                players.append({
+                    "name": athlete.get("displayName", ""),
+                    "team": team.get("displayName", ""),
+                    "team_logo": (team.get("logos") or [{}])[0].get("href", ""),
+                    "goals": leader.get("value", 0),
+                    "flag": athlete.get("flag", {}).get("href", ""),
+                })
+    return sorted(players, key=lambda x: -int(x["goals"] or 0))
