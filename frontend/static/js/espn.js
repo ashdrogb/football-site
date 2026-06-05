@@ -134,3 +134,113 @@ function parseTopScorers(raw) {
   }
   return players.sort((a,b) => b.goals - a.goals);
 }
+
+// ── WC Player stats (called from browser) ────────────────────
+
+async function getWCLeadersByCategory() {
+  // ESPN leaders endpoint returns multiple stat categories
+  const raw = await espnFetch('FIFA.WORLD', 'leaders');
+  return parseAllLeaderCategories(raw);
+}
+
+function parseAllLeaderCategories(raw) {
+  const result = {
+    goals: [], assists: [], saves: [], cleanSheets: [],
+    yellowCards: [], redCards: [], minutesPlayed: [],
+  };
+
+  const catMap = {
+    goals:         ['goals', 'goal'],
+    assists:       ['assists', 'assist'],
+    saves:         ['saves', 'save'],
+    cleanSheets:   ['cleansheets', 'clean sheet', 'clean_sheet'],
+    yellowCards:   ['yellowcards', 'yellow card', 'yellow'],
+    redCards:      ['redcards', 'red card', 'red'],
+    minutesPlayed: ['minutesplayed', 'minutes played', 'minutes'],
+  };
+
+  for (const cat of (raw.categories || [])) {
+    const catName = (cat.name || cat.displayName || '').toLowerCase().replace(/\s+/g, '');
+    for (const [key, aliases] of Object.entries(catMap)) {
+      if (aliases.some(a => catName.includes(a.replace(/\s+/g,'')))) {
+        result[key] = (cat.leaders || []).map(l => parseLeader(l));
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+function parseLeader(l) {
+  const a = l.athlete || {};
+  const t = l.team   || {};
+  return {
+    id:        a.id || '',
+    name:      a.displayName || a.shortName || '',
+    shortName: a.shortName   || a.displayName || '',
+    team:      t.displayName || t.shortDisplayName || '',
+    teamAbbr:  t.abbreviation || '',
+    teamLogo:  (t.logos || [])[0]?.href || t.logo || '',
+    flag:      a.flag?.href || a.headshot?.href || '',
+    headshot:  a.headshot?.href || '',
+    position:  a.position?.displayName || a.position?.abbreviation || '',
+    value:     +(l.value || l.displayValue || 0),
+    display:   l.displayValue || String(l.value || 0),
+  };
+}
+
+// Fantasy points computation (Dream11-style, soccer version)
+function computeSoccerFantasy(player, stats) {
+  let pts = 0;
+  const breakdown = {};
+
+  const goals   = stats.goals   || 0;
+  const assists  = stats.assists  || 0;
+  const saves    = stats.saves    || 0;
+  const clean    = stats.cleanSheets || 0;
+  const yellow   = stats.yellowCards || 0;
+  const red      = stats.redCards    || 0;
+  const mins     = stats.minutesPlayed || 0;
+  const isGK     = /goalkeeper|keeper|gk/i.test(player.position || '');
+
+  breakdown.played_bonus = mins >= 60 ? 4 : mins > 0 ? 2 : 0;
+  breakdown.goals        = goals   * (isGK ? 12 : player.position?.toLowerCase().includes('defend') ? 10 : 8);
+  breakdown.assists      = assists * 5;
+  breakdown.saves        = saves   * 1;          // per save for GKs
+  breakdown.clean_sheet  = clean   * (isGK ? 12 : 0);
+  breakdown.yellow_card  = yellow  * -2;
+  breakdown.red_card     = red     * -4;
+
+  pts = Object.values(breakdown).reduce((a, b) => a + b, 0);
+  return { total: pts, breakdown };
+}
+
+// Build fantasy leaderboard by merging all stat categories
+function buildWCFantasyLeaderboard(categories) {
+  const playerMap = {};
+
+  const merge = (list, statKey) => {
+    list.forEach(p => {
+      if (!playerMap[p.id || p.name]) {
+        playerMap[p.id || p.name] = { ...p, stats: {} };
+      }
+      playerMap[p.id || p.name].stats[statKey] = p.value;
+    });
+  };
+
+  merge(categories.goals,         'goals');
+  merge(categories.assists,        'assists');
+  merge(categories.saves,          'saves');
+  merge(categories.cleanSheets,    'cleanSheets');
+  merge(categories.yellowCards,    'yellowCards');
+  merge(categories.redCards,       'redCards');
+  merge(categories.minutesPlayed,  'minutesPlayed');
+
+  return Object.values(playerMap)
+    .map(p => {
+      const fp = computeSoccerFantasy(p, p.stats);
+      return { ...p, fantasyPoints: fp.total, breakdown: fp.breakdown };
+    })
+    .filter(p => p.fantasyPoints > 0)
+    .sort((a, b) => b.fantasyPoints - a.fantasyPoints);
+}

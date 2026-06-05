@@ -84,12 +84,14 @@
       <button class="tab-btn" onclick="switchWCTab('wc-bracket',this)">Knockout Bracket</button>
       <button class="tab-btn" onclick="switchWCTab('wc-schedule',this)">Schedule</button>
       <button class="tab-btn" onclick="switchWCTab('wc-scorers',this)">Top Scorers</button>
+      <button class="tab-btn" onclick="switchWCTab('wc-players',this)">Players &amp; Fantasy</button>
       <button class="tab-btn" onclick="switchWCTab('wc-info',this)">Info</button>
     </div>
     <div id="wc-groups"   class="wc-tab"></div>
     <div id="wc-bracket"  class="wc-tab" style="display:none"></div>
     <div id="wc-schedule" class="wc-tab" style="display:none"></div>
     <div id="wc-scorers"  class="wc-tab" style="display:none"></div>
+    <div id="wc-players"  class="wc-tab" style="display:none"></div>
     <div id="wc-info"     class="wc-tab" style="display:none"></div>
   </div>
 
@@ -122,6 +124,7 @@ function switchWCTab(id,btn){
   btn.classList.add('active');
   if(id==='wc-bracket') renderBracket(el);
   if(id==='wc-info')    renderWCInfo(el);
+  if(id==='wc-players' && !el.innerHTML.trim()) loadWCPlayers();
 }
 setInterval(()=>{
   const el=document.getElementById('last-updated');

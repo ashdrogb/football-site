@@ -194,3 +194,275 @@ main{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:24px 32px;max
 #bracket-scroll-wrap .bracket-match rect { transition: opacity .15s; }
 #bracket-scroll-wrap .bracket-match:hover rect { opacity: 0.85; }
 #bracket-scroll-wrap { user-select: none; }
+
+/* ══════════════════════════════════════════
+   WC PLAYERS & FANTASY STYLES
+══════════════════════════════════════════ */
+
+/* Sub-tab bar inside Players tab */
+.player-tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.ptab {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text2);
+  font-family: var(--font-body);
+  font-size: .82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.ptab:hover { border-color: var(--accent); color: var(--accent); }
+
+.ptab.active {
+  background: rgba(0,230,118,.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Pre-tournament notice */
+.pretournament-note {
+  background: rgba(0,176,255,.06);
+  border: 1px solid rgba(0,176,255,.15);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: .78rem;
+  color: var(--text2);
+  letter-spacing: .3px;
+}
+
+/* Player stat row (live leaderboard) */
+.player-stat-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 100px 64px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.player-stat-row:last-child { border-bottom: none; }
+
+.psr-rank {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--text3);
+  text-align: center;
+}
+.psr-rank.gold   { color: #ffd700; }
+.psr-rank.silver { color: #b0bec5; }
+.psr-rank.bronze { color: #cd7f32; }
+
+.psr-info .psr-name { font-size: .85rem; font-weight: 600; }
+.psr-info .psr-team { font-size: .7rem; color: var(--text2); margin-top: 1px; }
+
+.psr-bar-wrap {
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.psr-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  transition: width .8s cubic-bezier(.4,0,.2,1);
+}
+
+.psr-value {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--accent);
+  text-align: right;
+  letter-spacing: .5px;
+}
+
+/* Player cards grid (demo/pre-tournament) */
+.player-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.player-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: border-color .2s, background .2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.player-card:hover { border-color: rgba(0,230,118,.3); background: rgba(0,230,118,.03); }
+.player-card:hover::before { opacity: 1; }
+
+.pc-flag { font-size: 1.8rem; flex-shrink: 0; }
+
+.pc-body { flex: 1; min-width: 0; }
+.pc-rank { font-size: .62rem; color: var(--text3); letter-spacing: 1px; margin-bottom: 2px; }
+.pc-rank.gold   { color: #ffd700; }
+.pc-rank.silver { color: #b0bec5; }
+.pc-name { font-size: .88rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-team { font-size: .72rem; color: var(--text2); margin-top: 1px; }
+.pc-pos  { font-size: .65rem; color: var(--text3); margin-top: 2px; letter-spacing: .5px; }
+
+.pc-stat { text-align: center; flex-shrink: 0; }
+.pc-stat-val {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+.pc-stat-lbl { font-size: .58rem; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+
+/* Fantasy player rows */
+.fantasy-player-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.fantasy-player-row:hover { background: rgba(0,230,118,.03); }
+.fantasy-player-row:last-child { border-bottom: none; }
+
+.fp-rank {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--text3);
+  text-align: center;
+}
+.fp-rank.gold   { color: #ffd700; }
+.fp-rank.silver { color: #b0bec5; }
+.fp-rank.bronze { color: #cd7f32; }
+
+.fp-info .fp-name { font-size: .88rem; font-weight: 600; }
+.fp-info .fp-sub  { font-size: .7rem; color: var(--text2); margin-top: 1px; }
+
+.fp-pts {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--accent);
+  letter-spacing: .5px;
+  text-align: right;
+}
+
+/* Pitch / Dream XI */
+.pitch-container {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid rgba(0,230,118,.15);
+}
+
+.pitch-grass {
+  background:
+    linear-gradient(180deg,
+      #1a3a1a 0%, #1e421e 8%, #1a3a1a 16%,
+      #1e421e 24%, #1a3a1a 32%, #1e421e 40%,
+      #1a3a1a 48%, #1e421e 56%, #1a3a1a 64%,
+      #1e421e 72%, #1a3a1a 80%, #1e421e 88%, #1a3a1a 100%
+    );
+  padding: 24px 16px 16px;
+  position: relative;
+  border-top: 3px solid rgba(255,255,255,.15);
+  border-bottom: 3px solid rgba(255,255,255,.15);
+}
+
+.pitch-label {
+  font-size: .58rem;
+  letter-spacing: 2.5px;
+  color: rgba(255,255,255,.25);
+  text-align: center;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+}
+
+.pitch-centre-circle {
+  width: 80px;
+  height: 80px;
+  border: 2px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.xi-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: default;
+}
+
+.xi-shirt {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.1);
+  border: 2px solid rgba(255,255,255,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  backdrop-filter: blur(4px);
+  transition: border-color .2s;
+}
+
+.xi-player:hover .xi-shirt { border-color: var(--accent); }
+
+.xi-name {
+  font-size: .68rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8);
+  white-space: nowrap;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.xi-pos {
+  font-size: .55rem;
+  color: rgba(255,255,255,.5);
+  letter-spacing: 1px;
+}
+
+.xi-pts {
+  font-family: var(--font-display);
+  font-size: .9rem;
+  color: #ffd700;
+  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+}

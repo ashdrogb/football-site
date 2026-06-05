@@ -340,6 +340,7 @@ async function loadWC() {
   loadWCGroups();
   loadWCSchedule();
   loadWCScorersTab();
+  loadWCPlayers();
 }
 
 async function loadWCGroups() {
@@ -721,4 +722,305 @@ function showError(msg) {
 }
 function clearError() {
   document.getElementById('error-bar').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  WC PLAYERS TAB
+// ═══════════════════════════════════════════════════════════════
+
+async function loadWCPlayers() {
+  const el = document.getElementById('wc-players');
+  el.innerHTML = `<div class="loading-row"><div class="spinner"></div> Fetching player stats…</div>`;
+
+  let categories = null;
+  try {
+    categories = await getWCLeadersByCategory();
+  } catch (e) {
+    // ESPN not available yet or tournament hasn't started — show demo data
+  }
+
+  const haslive = categories &&
+    (categories.goals?.length || categories.saves?.length);
+
+  if (haslive) {
+    renderWCPlayersLive(el, categories);
+  } else {
+    renderWCPlayersDemo(el);
+  }
+}
+
+// ── Live data from ESPN ───────────────────────────────────────
+function renderWCPlayersLive(el, cats) {
+  const fantasy = buildWCFantasyLeaderboard(cats);
+  el.innerHTML = `
+    <div class="player-tab-bar">
+      <button class="ptab active" onclick="switchPTab('pt-scorers',this)">⚽ Top Scorers</button>
+      <button class="ptab" onclick="switchPTab('pt-gk',this)">🧤 Goalkeepers</button>
+      <button class="ptab" onclick="switchPTab('pt-fantasy',this)">⭐ Fantasy XI</button>
+    </div>
+
+    <div id="pt-scorers" class="ptab-panel">
+      ${playerLeaderboard(cats.goals, 'Goals', 'goals')}
+    </div>
+
+    <div id="pt-gk" class="ptab-panel" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        ${playerLeaderboard(cats.saves, 'Saves', 'saves')}
+        ${playerLeaderboard(cats.cleanSheets, 'Clean Sheets', 'clean sheets')}
+      </div>
+    </div>
+
+    <div id="pt-fantasy" class="ptab-panel" style="display:none">
+      ${fantasyLeaderboardHTML(fantasy)}
+    </div>`;
+}
+
+// ── Demo / pre-tournament data ────────────────────────────────
+function renderWCPlayersDemo(el) {
+  // Rich demo dataset with real 2026 WC participants
+  const scorers = [
+    {name:'Kylian Mbappé',   shortName:'Mbappé',   team:'France',    teamAbbr:'FRA', position:'Forward',  value:0, headshot:'', flag:'🇫🇷'},
+    {name:'Vinicius Jr.',    shortName:'Vinicius', team:'Brazil',    teamAbbr:'BRA', position:'Forward',  value:0, headshot:'', flag:'🇧🇷'},
+    {name:'Lionel Messi',    shortName:'Messi',    team:'Argentina', teamAbbr:'ARG', position:'Forward',  value:0, headshot:'', flag:'🇦🇷'},
+    {name:'Erling Haaland',  shortName:'Haaland',  team:'Norway',    teamAbbr:'NOR', position:'Forward',  value:0, headshot:'', flag:'🇳🇴'},
+    {name:'Harry Kane',      shortName:'Kane',     team:'England',   teamAbbr:'ENG', position:'Forward',  value:0, headshot:'', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
+    {name:'Lamine Yamal',    shortName:'Yamal',    team:'Spain',     teamAbbr:'ESP', position:'Forward',  value:0, headshot:'', flag:'🇪🇸'},
+    {name:'Phil Foden',      shortName:'Foden',    team:'England',   teamAbbr:'ENG', position:'Midfielder',value:0, headshot:'', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
+    {name:'Rodri',           shortName:'Rodri',    team:'Spain',     teamAbbr:'ESP', position:'Midfielder',value:0, headshot:'', flag:'🇪🇸'},
+  ];
+
+  const goalkeepers = [
+    {name:"Gianluigi Donnarumma", shortName:'Donnarumma', team:'Italy',     teamAbbr:'ITA', position:'Goalkeeper', saves:0, cleanSheets:0, flag:'🇮🇹'},
+    {name:"Thibaut Courtois",     shortName:'Courtois',   team:'Belgium',   teamAbbr:'BEL', position:'Goalkeeper', saves:0, cleanSheets:0, flag:'🇧🇪'},
+    {name:"Alisson Becker",       shortName:'Alisson',    team:'Brazil',    teamAbbr:'BRA', position:'Goalkeeper', saves:0, cleanSheets:0, flag:'🇧🇷'},
+    {name:"Manuel Neuer",         shortName:'Neuer',      team:'Germany',   teamAbbr:'GER', position:'Goalkeeper', saves:0, cleanSheets:0, flag:'🇩🇪'},
+    {name:"Ederson",              shortName:'Ederson',    team:'Brazil',    teamAbbr:'BRA', position:'Goalkeeper', saves:0, cleanSheets:0, flag:'🇧🇷'},
+    {name:"Emiliano Martínez",    shortName:'E. Martínez',team:'Argentina', teamAbbr:'ARG', position:'Goalkeeper', saves:0, cleanSheets:0, flag:'🇦🇷'},
+    {name:"Yann Sommer",          shortName:'Sommer',     team:'Switzerland',teamAbbr:'SUI', position:'Goalkeeper', saves:0, cleanSheets:0, flag:'🇨🇭'},
+    {name:"Keylor Navas",         shortName:'Navas',      team:'Costa Rica',teamAbbr:'CRC', position:'Goalkeeper', saves:0, cleanSheets:0, flag:'🇨🇷'},
+  ];
+
+  // Dream XI players (pre-tournament predictions)
+  const dreamXI = [
+    {name:"Gianluigi Donnarumma", team:'Italy',     teamAbbr:'ITA', position:'GK',  flag:'🇮🇹', pts:92},
+    {name:"Achraf Hakimi",        team:'Morocco',   teamAbbr:'MAR', position:'RB',  flag:'🇲🇦', pts:88},
+    {name:"Marquinhos",           team:'Brazil',    teamAbbr:'BRA', position:'CB',  flag:'🇧🇷', pts:86},
+    {name:"Virgil van Dijk",      team:'Netherlands',teamAbbr:'NED', position:'CB', flag:'🇳🇱', pts:85},
+    {name:"Theo Hernández",       team:'France',    teamAbbr:'FRA', position:'LB',  flag:'🇫🇷', pts:84},
+    {name:"Pedri",                team:'Spain',     teamAbbr:'ESP', position:'CM',  flag:'🇪🇸', pts:90},
+    {name:"Rodri",                team:'Spain',     teamAbbr:'ESP', position:'CDM', flag:'🇪🇸', pts:89},
+    {name:"Jude Bellingham",      team:'England',   teamAbbr:'ENG', position:'CAM', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', pts:91},
+    {name:"Lamine Yamal",         team:'Spain',     teamAbbr:'ESP', position:'RW',  flag:'🇪🇸', pts:93},
+    {name:"Kylian Mbappé",        team:'France',    teamAbbr:'FRA', position:'ST',  flag:'🇫🇷', pts:97},
+    {name:"Vinicius Jr.",         team:'Brazil',    teamAbbr:'BRA', position:'LW',  flag:'🇧🇷', pts:95},
+  ];
+
+  el.innerHTML = `
+    <div class="player-tab-bar">
+      <button class="ptab active" onclick="switchPTab('pt-scorers',this)">⚽ Top Scorers</button>
+      <button class="ptab" onclick="switchPTab('pt-gk',this)">🧤 Goalkeepers</button>
+      <button class="ptab" onclick="switchPTab('pt-fantasy',this)">⭐ Fantasy XI</button>
+    </div>
+
+    <div id="pt-scorers" class="ptab-panel">
+      <div class="pretournament-note">
+        ⏱ Tournament starts Jun 11 · Showing top contenders to watch · Stats update live once matches begin
+      </div>
+      ${demoScorerCards(scorers)}
+    </div>
+
+    <div id="pt-gk" class="ptab-panel" style="display:none">
+      <div class="pretournament-note">
+        ⏱ Tournament starts Jun 11 · Goalkeepers to watch · Live saves &amp; clean sheets from Jun 11
+      </div>
+      ${demoGKCards(goalkeepers)}
+    </div>
+
+    <div id="pt-fantasy" class="ptab-panel" style="display:none">
+      <div class="pretournament-note">
+        ⭐ Pre-tournament Dream XI predictions · Live fantasy points update once matches begin
+      </div>
+      ${dreamXIHTML(dreamXI)}
+    </div>`;
+}
+
+// ── Player leaderboard component (live) ───────────────────────
+function playerLeaderboard(players, title, unit) {
+  if (!players?.length) return `<div class="loading-row" style="color:var(--text3)">No ${title} data yet</div>`;
+  const max = Math.max(...players.map(p => p.value), 1);
+  return `
+    <div>
+      <div style="font-size:.68rem;letter-spacing:2px;color:var(--text3);margin-bottom:10px">${title.toUpperCase()}</div>
+      ${players.slice(0,10).map((p,i) => `
+        <div class="player-stat-row">
+          <div class="psr-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
+          <div class="psr-info">
+            <div class="psr-name">${p.name}</div>
+            <div class="psr-team">${p.team} · <span style="color:var(--text3)">${p.position}</span></div>
+          </div>
+          <div class="psr-bar-wrap">
+            <div class="psr-bar" style="width:${(p.value/max*100).toFixed(1)}%"></div>
+          </div>
+          <div class="psr-value">${p.display}<span style="font-size:.58rem;color:var(--text3);margin-left:3px">${unit}</span></div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── Fantasy leaderboard (live) ────────────────────────────────
+function fantasyLeaderboardHTML(players) {
+  if (!players?.length) return `<div class="loading-row" style="color:var(--text3)">Fantasy data builds as tournament progresses</div>`;
+  return `
+    <div style="margin-bottom:10px;font-size:.68rem;color:var(--text3);letter-spacing:1px">
+      DREAM11-STYLE POINTS · Click a player to see breakdown
+    </div>
+    <div class="card">
+      ${players.slice(0,15).map((p,i) => `
+        <div class="fantasy-player-row" onclick="showFPBreakdown(this)"
+          data-name="${p.name}" data-team="${p.team}"
+          data-pts="${p.fantasyPoints}" data-breakdown='${JSON.stringify(p.breakdown)}'>
+          <div class="fp-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
+          <div class="fp-info">
+            <div class="fp-name">${p.name}</div>
+            <div class="fp-sub">${p.team} · ${p.position}</div>
+          </div>
+          <div class="fp-pts">${p.fantasyPoints}<span style="font-size:.6rem;color:var(--text3);margin-left:3px">pts</span></div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function showFPBreakdown(row) {
+  const name = row.dataset.name;
+  const team = row.dataset.team;
+  const pts  = row.dataset.pts;
+  const bd   = JSON.parse(row.dataset.breakdown || '{}');
+
+  const modal = document.getElementById('match-modal');
+  const body  = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+
+  const rows = Object.entries(bd).filter(([,v]) => v !== 0).map(([k,v]) => `
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:.83rem">
+      <span style="color:var(--text2)">${k.replace(/_/g,' ')}</span>
+      <span style="font-family:var(--font-mono);color:${v>0?'var(--win)':'var(--loss)'}">${v>0?'+':''}${v}</span>
+    </div>`).join('');
+
+  body.innerHTML = `
+    <div style="padding:20px">
+      <div style="font-family:var(--font-display);font-size:1.5rem;margin-bottom:2px">${name}</div>
+      <div style="color:var(--text2);font-size:.8rem;margin-bottom:18px">${team}</div>
+      <div style="font-size:.65rem;letter-spacing:2px;color:var(--text3);margin-bottom:8px">POINTS BREAKDOWN</div>
+      ${rows}
+      <div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:14px;
+        border-top:1px solid var(--border)">
+        <span style="font-family:var(--font-display);font-size:1rem;letter-spacing:1px">TOTAL</span>
+        <span style="font-family:var(--font-display);font-size:1.8rem;color:var(--accent)">${pts}</span>
+      </div>
+    </div>`;
+}
+
+// ── Demo scorer cards ─────────────────────────────────────────
+function demoScorerCards(players) {
+  return `
+    <div class="player-cards-grid">
+      ${players.map((p,i) => `
+        <div class="player-card">
+          <div class="pc-flag">${p.flag}</div>
+          <div class="pc-body">
+            <div class="pc-rank ${i===0?'gold':i===1?'silver':''}">#${i+1}</div>
+            <div class="pc-name">${p.shortName || p.name}</div>
+            <div class="pc-team">${p.team}</div>
+            <div class="pc-pos">${p.position}</div>
+          </div>
+          <div class="pc-stat">
+            <div class="pc-stat-val">—</div>
+            <div class="pc-stat-lbl">GOALS</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function demoGKCards(gks) {
+  return `
+    <div class="player-cards-grid">
+      ${gks.map((p,i) => `
+        <div class="player-card">
+          <div class="pc-flag">${p.flag}</div>
+          <div class="pc-body">
+            <div class="pc-rank">#${i+1}</div>
+            <div class="pc-name">${p.shortName}</div>
+            <div class="pc-team">${p.team}</div>
+            <div class="pc-pos">Goalkeeper</div>
+          </div>
+          <div style="display:flex;gap:12px">
+            <div class="pc-stat">
+              <div class="pc-stat-val" style="font-size:1.1rem">—</div>
+              <div class="pc-stat-lbl">SAVES</div>
+            </div>
+            <div class="pc-stat">
+              <div class="pc-stat-val" style="font-size:1.1rem">—</div>
+              <div class="pc-stat-lbl">CS</div>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── Dream XI pitch visual ─────────────────────────────────────
+function dreamXIHTML(players) {
+  const byPos = {
+    GK:  players.filter(p => p.position === 'GK'),
+    DEF: players.filter(p => ['RB','CB','LB'].includes(p.position)),
+    MID: players.filter(p => ['CM','CDM','CAM'].includes(p.position)),
+    ATT: players.filter(p => ['RW','LW','ST'].includes(p.position)),
+  };
+
+  const posRow = (group, label) => `
+    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:20px">
+      ${group.map(p => `
+        <div class="xi-player" title="${p.name}">
+          <div class="xi-shirt">${p.flag}</div>
+          <div class="xi-name">${p.name.split(' ').slice(-1)[0]}</div>
+          <div class="xi-pos">${p.position}</div>
+          <div class="xi-pts">${p.pts}</div>
+        </div>`).join('')}
+    </div>`;
+
+  return `
+    <div style="margin-bottom:16px;font-size:.72rem;color:var(--text2);letter-spacing:1px">
+      🌟 Pre-tournament Dream XI · Points are projected fantasy scores based on form &amp; tournament odds
+    </div>
+    <div class="pitch-container">
+      <div class="pitch-grass">
+        <div class="pitch-label">ATTACK</div>
+        ${posRow(byPos.ATT)}
+        <div class="pitch-label">MIDFIELD</div>
+        ${posRow(byPos.MID)}
+        <div class="pitch-label">DEFENCE</div>
+        ${posRow(byPos.DEF)}
+        <div class="pitch-label">GOALKEEPER</div>
+        ${posRow(byPos.GK)}
+        <div class="pitch-centre-circle"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);font-size:.65rem;letter-spacing:2px;color:var(--text3)">
+        FULL SQUAD FANTASY RANKINGS
+      </div>
+      ${players.sort((a,b)=>b.pts-a.pts).map((p,i)=>`
+        <div class="fantasy-player-row" style="cursor:default">
+          <div class="fp-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
+          <div class="fp-info">
+            <div class="fp-name">${p.flag} ${p.name}</div>
+            <div class="fp-sub">${p.team} · ${p.position}</div>
+          </div>
+          <div class="fp-pts">${p.pts}<span style="font-size:.6rem;color:var(--text3);margin-left:3px">pts</span></div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function switchPTab(id, btn) {
+  document.querySelectorAll('.ptab-panel').forEach(p => p.style.display='none');
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  btn.classList.add('active');
 }
