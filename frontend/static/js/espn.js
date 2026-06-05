@@ -4,7 +4,8 @@
  */
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
-const API_BASE  = 'http://localhost:8000/api';  // our FastAPI backend
+// const API_BASE  = 'http://localhost:8000/api';  // our FastAPI backend
+const API_BASE = `${window.location.origin}/api`;
 
 // ── Core ESPN fetch ───────────────────────────────────────────
 async function espnFetch(league, endpoint, params = {}) {
