@@ -4,6 +4,7 @@ ESPN data is fetched directly in the browser JS (ESPN blocks server IPs).
 This backend serves static files and provides analysis endpoints on data
 POSTed to it from the browser.
 """
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -17,6 +18,9 @@ from analysis import (
     standings_dataframe, top_scoring_teams,
     form_summary, highest_scoring_matches, league_goal_stats
 )
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,12 +39,16 @@ app.add_middleware(
     allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="../frontend/static"), name="static")
+app.mount(
+    "/static",
+    StaticFiles(directory=str(FRONTEND_DIR / "static")),
+    name="static",
+)
 
 
 @app.get("/", include_in_schema=False)
 async def root():
-    return FileResponse("../frontend/index.html")
+    return FileResponse(str(FRONTEND_DIR / "index.html"))
 
 
 # ── Meta ──────────────────────────────────────────────────────
