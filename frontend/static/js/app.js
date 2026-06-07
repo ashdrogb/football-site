@@ -208,18 +208,13 @@ function renderHighlights(matches) {
     </div>`).join('');
 }
 
-// ── Match modal ───────────────────────────────────────────────
+// ── Match modal (full analytics) ─────────────────────────────
 async function openMatch(eventId) {
   const modal = document.getElementById('match-modal');
   const body  = document.getElementById('modal-body');
   modal.style.display = 'flex';
-  body.innerHTML = `<div class="loading-row"><div class="spinner"></div> Loading…</div>`;
-  try {
-    const data = await getMatchSummary(currentLeague, eventId);
-    renderMatchDetail(data, body);
-  } catch (e) {
-    body.innerHTML = errHTML('Could not load match details: ' + e.message);
-  }
+  // Delegate entirely to match-analytics.js
+  await loadMatchAnalytics(currentLeague, eventId, body);
 }
 
 function renderMatchDetail(data, el) {
