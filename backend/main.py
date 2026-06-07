@@ -16,7 +16,8 @@ import logging
 from fetcher import LEAGUES, SERIES_META
 from analysis import (
     standings_dataframe, top_scoring_teams,
-    form_summary, highest_scoring_matches, league_goal_stats
+    form_summary, highest_scoring_matches, league_goal_stats,
+    analyse_match_summary
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -104,5 +105,17 @@ async def analyse_top_scorers(payload: dict):
         n = payload.get("n", 5)
         top = top_scoring_teams(standings, n)
         return {"top_teams": top}
+    except Exception as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/api/analysis/match")
+async def analyse_match(payload: dict):
+    """
+    Receive raw ESPN summary JSON (POSTed from browser after client-side fetch).
+    Returns rich analytics: stats, goals, events, pressure map, ratings, xG.
+    """
+    try:
+        return analyse_match_summary(payload)
     except Exception as e:
         raise HTTPException(400, str(e))
